@@ -1,0 +1,200 @@
+{% extends 'barber/base.html' %}
+
+{% block title %}Credit Payments - BarberFlow{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header Section -->
+    <div class="row mb-4 fade-in-up">
+        <div class="col-12">
+            <div class="card-apple p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="display-6 fw-bold mb-2">Credit Payments</h1>
+                        <p class="text-muted mb-0">Track outstanding credit and payments</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="card-apple d-inline-block px-4 py-3">  <!-- Increased padding -->
+                            <small class="text-muted">{{ month_start|date:"F Y" }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credit Summary -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card-apple text-center p-4">
+                <div class="h2 text-danger mb-2">R{{ total_credit|default:"0" }}</div>
+                <div class="text-muted">Outstanding Credit</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card-apple text-center p-4">
+                <div class="h2 text-warning mb-2">{{ unpaid_count|default:"0" }}</div>
+                <div class="text-muted">Unpaid Transactions</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card-apple text-center p-4">
+                <div class="h2 text-success mb-2">{{ paid_count|default:"0" }}</div>
+                <div class="text-muted">Paid This Month</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Outstanding Credit by Client -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card-apple">
+                <div class="card-header bg-transparent border-bottom-0 py-4 px-4">  <!-- Added px-4 -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold">
+                            <i class="bi bi-people me-3"></i>Outstanding Credit by Client  <!-- Increased icon spacing -->
+                        </h5>
+                    </div>
+                </div>
+                <div class="card-body px-4 pb-4">  <!-- Changed from p-0 to px-4 pb-4 -->
+                    {% if credit_summary %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">  <!-- Removed table-apple -->
+                            <thead>
+                                <tr>
+                                    <th class="px-3 py-3">Client</th>  <!-- Added padding -->
+                                    <th class="px-3 py-3">Phone</th>
+                                    <th class="px-3 py-3">Unpaid Cuts</th>
+                                    <th class="px-3 py-3">Total Owed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for summary in credit_summary %}
+                                <tr>
+                                    <td class="fw-medium px-3 py-3">  <!-- Added padding -->
+                                        {% if summary.client__name %}
+                                            {{ summary.client__name }} {{ summary.client__surname }}
+                                        {% else %}
+                                            <em class="text-muted">Walk-in Client</em>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-muted px-3 py-3">{{ summary.client__phone|default:"-" }}</td>
+                                    <td class="px-3 py-3">
+                                        <span class="badge bg-danger text-white px-3 py-2 rounded-pill">{{ summary.unpaid_count }}</span>  <!-- Standard badge -->
+                                    </td>
+                                    <td class="fw-semibold text-danger px-3 py-3">R{{ summary.total_owed }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-warning">
+                                    <td colspan="2" class="fw-semibold px-3 py-3">Total Outstanding</td>  <!-- Added padding -->
+                                    <td class="fw-semibold px-3 py-3">{{ unpaid_count }} cuts</td>
+                                    <td class="fw-semibold text-danger px-3 py-3">R{{ total_credit }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 px-4">  <!-- Added px-4 -->
+                        <i class="bi bi-emoji-smile display-1 text-success mb-3"></i>
+                        <h5 class="text-success mb-2">No outstanding credit!</h5>
+                        <p class="text-muted">All clients have settled their payments</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Credit Transactions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card-apple">
+                <div class="card-header bg-transparent border-bottom-0 py-4 px-4">  <!-- Added px-4 -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold">
+                            <i class="bi bi-list-check me-3"></i>All Credit Transactions  <!-- Increased icon spacing -->
+                        </h5>
+                    </div>
+                </div>
+                <div class="card-body px-4 pb-4">  <!-- Changed from p-0 to px-4 pb-4 -->
+                    {% if credit_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">  <!-- Removed table-apple -->
+                            <thead>
+                                <tr>
+                                    <th class="px-3 py-3">Date</th>  <!-- Added padding -->
+                                    <th class="px-3 py-3">Client</th>
+                                    <th class="px-3 py-3">Service</th>
+                                    <th class="px-3 py-3">Amount</th>
+                                    <th class="px-3 py-3">Status</th>
+                                    <th class="px-3 py-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in credit_transactions %}
+                                <tr class="{% if transaction.credit_paid %}table-success{% endif %}">
+                                    <td class="fw-medium px-3 py-3">{{ transaction.date|date:"M j, Y" }}</td>  <!-- Added padding -->
+                                    <td class="px-3 py-3">
+                                        {% if transaction.client %}
+                                            {{ transaction.client.name }} {{ transaction.client.surname }}
+                                        {% else %}
+                                            <span class="text-muted">{{ transaction.client_name }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-3 py-3">{{ transaction.service.name }}</td>
+                                    <td class="fw-semibold {% if transaction.credit_paid %}text-success{% else %}text-danger{% endif %} px-3 py-3">
+                                        R{{ transaction.amount }}
+                                    </td>
+                                    <td class="px-3 py-3">
+                                        {% if transaction.credit_paid %}
+                                        <span class="badge bg-success text-white px-3 py-2 rounded-pill">  <!-- Standard badge -->
+                                            Paid {{ transaction.credit_paid_date|date:"M j" }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-warning text-white px-3 py-2 rounded-pill">Unpaid</span>  <!-- Standard badge -->
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-3 py-3">
+                                        {% if not transaction.credit_paid %}
+                                        <a href="{% url 'mark_credit_paid' transaction.pk %}" 
+                                           class="btn btn-success btn-sm px-3"   Standard button
+                                           onclick="return confirm('Mark R{{ transaction.amount }} from {{ transaction.client.name|default:transaction.client_name }} as paid?')">
+                                            <i class="bi bi-check-circle me-1"></i>Mark Paid
+                                        </a>
+                                        {% else %}
+                                        <span class="text-success">
+                                            <i class="bi bi-check-circle me-1"></i>Paid
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 px-4">  <!-- Added px-4 -->
+                        <i class="bi bi-receipt display-1 text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No credit transactions this month</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{% url 'income_list' %}" class="btn btn-apple me-3 px-4 py-3">  <!-- Added padding -->
+                <i class="bi bi-arrow-left me-2"></i>Back to Income
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-apple-primary px-4 py-3">  <!-- Added padding -->
+                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

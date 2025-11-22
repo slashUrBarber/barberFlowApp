@@ -1,0 +1,163 @@
+{% extends 'barber/base.html' %}
+
+{% block title %}Record Income - BarberFlow{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <!-- Header -->
+            <div class="row mb-4 fade-in-up">
+                <div class="col-12">
+                    <div class="card-apple p-4">
+                        <div class="d-flex align-items-center">
+                            <a href="{% url 'income_list' %}" class="btn btn-apple me-3">
+                                <i class="bi bi-arrow-left"></i>
+                            </a>
+                            <div>
+                                <h1 class="display-6 fw-bold mb-1">Record Income</h1>
+                                <p class="text-muted mb-0">Record payment for walk-in clients or additional services</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Income Form -->
+            <div class="card-apple p-4 fade-in-up" style="animation-delay: 0.1s;">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row g-4">
+                        <!-- Client Selection -->
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Client</label>
+                            {{ form.client }}
+                            <div class="form-text">Select existing client or enter name below</div>
+                        </div>
+
+                        <!-- Service Selection -->
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Service</label>
+                            {{ form.service }}
+                        </div>
+
+                        <!-- Amount and Payment Method -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Amount (R)</label>
+                            {{ form.amount }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Payment Method</label>
+                            {{ form.payment_method }}
+                        </div>
+
+                        <!-- Walk-in Toggle -->
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                {{ form.is_walkin }}
+                                <label class="form-check-label fw-medium" for="{{ form.is_walkin.id_for_label }}">
+                                    Walk-in Client
+                                </label>
+                            </div>
+                            <div class="form-text">Enable for clients without appointments</div>
+                        </div>
+
+                        <!-- Client Name (for walk-ins) -->
+                        <div class="col-12" id="clientNameField">
+                            <label class="form-label fw-medium">Client Name</label>
+                            {{ form.client_name }}
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="col-12">
+                            <div class="d-flex gap-3 pt-3">
+                                <button type="submit" class="btn btn-apple-primary">
+                                    <i class="bi bi-check-circle me-2"></i>Record Income
+                                </button>
+                                <a href="{% url 'income_list' %}" class="btn btn-apple">
+                                    <i class="bi bi-x-circle me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Quick Reference -->
+            <div class="card-apple p-4 mt-4 fade-in-up" style="animation-delay: 0.2s;">
+                <h5 class="fw-semibold mb-3">
+                    <i class="bi bi-info-circle me-2"></i>Income Recording Tips
+                </h5>
+                <div class="text-muted">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Record all payments immediately after service
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Use accurate service pricing
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Track credit payments for follow-up
+                        </li>
+                        <li class="mb-0">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Regular income tracking improves business insight
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const walkinToggle = document.getElementById('{{ form.is_walkin.id_for_label }}');
+    const clientNameField = document.getElementById('clientNameField');
+    const clientSelect = document.getElementById('{{ form.client.id_for_label }}');
+    
+    function toggleClientFields() {
+        if (walkinToggle.checked) {
+            clientNameField.style.display = 'block';
+            clientSelect.required = false;
+        } else {
+            clientNameField.style.display = 'none';
+            clientSelect.required = true;
+        }
+    }
+    
+    walkinToggle.addEventListener('change', toggleClientFields);
+    toggleClientFields(); // Initial state
+    
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+
+    // Auto-format amount input
+    const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
+    if (amountInput) {
+        amountInput.addEventListener('blur', function() {
+            let value = parseFloat(this.value);
+            if (!isNaN(value)) {
+                this.value = value.toFixed(2);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

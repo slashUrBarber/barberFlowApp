@@ -1,0 +1,212 @@
+{% extends 'barber/base.html' %}
+
+{% block title %}{% if booking %}Edit Booking{% else %}New Booking{% endif %} - BarberFlow{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="row mb-4 fade-in-up">
+                <div class="col-12">
+                    <div class="card-apple p-4">
+                        <div class="d-flex align-items-center">
+                            <a href="{% url 'bookings_list' %}" class="btn btn-apple me-3">
+                                <i class="bi bi-arrow-left"></i>
+                            </a>
+                            <div>
+                                <h1 class="display-6 fw-bold mb-1">
+                                    {% if booking %}Edit Booking{% else %}New Booking{% endif %}
+                                </h1>
+                                <p class="text-muted mb-0">
+                                    {% if booking %}Update booking details{% else %}Create a new appointment or walk-in{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Form -->
+            <div class="card-apple p-4 fade-in-up" style="animation-delay: 0.1s;">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row g-4">
+                        <!-- Client Selection -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Client</label>
+                            {{ form.client }}
+                            <div class="form-text mt-2">Select existing client or create new below</div>
+                        </div>
+
+                        <!-- Service Selection -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Service</label>
+                            {{ form.service }}
+                        </div>
+
+                        <!-- Date and Time -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Appointment Date</label>
+                            {{ form.appointment_date }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Appointment Time</label>
+                            {{ form.appointment_time }}
+                        </div>
+
+                        <!-- Walk-in Toggle -->
+                        <div class="col-12 pt-2">
+                            <div class="form-check form-switch">
+                                {{ form.is_walkin }}
+                                <label class="form-check-label fw-medium" for="{{ form.is_walkin.id_for_label }}">
+                                    Walk-in Client
+                                </label>
+                            </div>
+                            <div class="form-text mt-2">Enable for clients without appointments</div>
+                        </div>
+
+                        <!-- Client Details (for new clients) -->
+                        <div class="col-12" id="clientDetails">
+                            <div class="card-apple p-4 mt-2">
+                                <h6 class="fw-semibold mb-3">Client Information</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Client Name</label>
+                                        {{ form.client_name }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Phone Number</label>
+                                        {{ form.client_phone }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="col-12">
+                            <div class="d-flex gap-3 pt-4">
+                                <button type="submit" class="btn btn-apple-primary px-4 py-3">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    {% if booking %}Update Booking{% else %}Create Booking{% endif %}
+                                </button>
+                                <a href="{% url 'bookings_list' %}" class="btn btn-apple px-4 py-3">
+                                    <i class="bi bi-x-circle me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Quick Client Add -->
+            <div class="card-apple p-4 mt-4 fade-in-up" style="animation-delay: 0.2s;">
+                <div class="card-header bg-transparent border-bottom-0 py-3 px-0">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="bi bi-lightning me-3"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body p-0 pt-3">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="{% url 'client_create' %}" class="card-apple text-decoration-none h-100">
+                                <div class="card-body text-center p-4 m-2">
+                                    <i class="bi bi-person-plus display-6 text-primary mb-3"></i>
+                                    <h6 class="fw-semibold mb-1">Add New Client</h6>
+                                    <small class="text-muted">Create client profile</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{% url 'select_existing_client' %}" class="card-apple text-decoration-none h-100">
+                                <div class="card-body text-center p-4 m-2">
+                                    <i class="bi bi-people display-6 text-success mb-3"></i>
+                                    <h6 class="fw-semibold mb-1">Existing Clients</h6>
+                                    <small class="text-muted">Browse all clients</small>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const walkinToggle = document.getElementById('{{ form.is_walkin.id_for_label }}');
+    const clientDetails = document.getElementById('clientDetails');
+    
+    function toggleClientDetails() {
+        if (walkinToggle.checked) {
+            clientDetails.style.display = 'block';
+        } else {
+            clientDetails.style.display = 'none';
+        }
+    }
+    
+    walkinToggle.addEventListener('change', toggleClientDetails);
+    toggleClientDetails(); // Initial state
+    
+    // Add form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+});
+</script>
+
+<style>
+/* Custom form styling */
+.form-apple {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.form-apple:focus {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
+    outline: none;
+}
+
+.form-check-input:checked {
+    background-color: var(--accent-blue);
+    border-color: var(--accent-blue);
+}
+
+#clientDetails {
+    transition: all 0.3s ease;
+}
+
+/* Ensure all form elements have consistent styling */
+select.form-apple, 
+input[type="date"].form-apple, 
+input[type="time"].form-apple,
+input[type="text"].form-apple {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Style the form switch to match Apple aesthetic */
+.form-switch .form-check-input {
+    width: 3em;
+    height: 1.5em;
+}
+</style>
+{% endblock %}

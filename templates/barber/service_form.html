@@ -1,0 +1,135 @@
+{% extends 'barber/base.html' %}
+
+{% block title %}{% if service %}Edit Service{% else %}Add Service{% endif %} - BarberFlow{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <!-- Header -->
+            <div class="row mb-4 fade-in-up">
+                <div class="col-12">
+                    <div class="card-apple p-4">
+                        <div class="d-flex align-items-center">
+                            <a href="{% url 'services_list' %}" class="btn btn-apple me-3">
+                                <i class="bi bi-arrow-left"></i>
+                            </a>
+                            <div>
+                                <h1 class="display-6 fw-bold mb-1">
+                                    {% if service %}Edit Service{% else %}Add Service{% endif %}
+                                </h1>
+                                <p class="text-muted mb-0">
+                                    {% if service %}Update service details{% else %}Create a new service offering{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Service Form -->
+            <div class="card-apple p-4 fade-in-up" style="animation-delay: 0.1s;">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row g-4">
+                        <!-- Service Name -->
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Service Name</label>
+                            {{ form.name }}
+                            <div class="form-text">Enter a clear, descriptive name for the service</div>
+                        </div>
+
+                        <!-- Duration and Price -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Duration (minutes)</label>
+                            {{ form.duration_minutes }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Price (R)</label>
+                            {{ form.price }}
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="col-12">
+                            <div class="d-flex gap-3 pt-3">
+                                <button type="submit" class="btn btn-apple-primary">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    {% if service %}Update Service{% else %}Create Service{% endif %}
+                                </button>
+                                <a href="{% url 'services_list' %}" class="btn btn-apple">
+                                    <i class="bi bi-x-circle me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Quick Tips -->
+            <div class="card-apple p-4 mt-4 fade-in-up" style="animation-delay: 0.2s;">
+                <h5 class="fw-semibold mb-3">
+                    <i class="bi bi-lightbulb me-2"></i>Service Tips
+                </h5>
+                <div class="text-muted">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Keep service names clear and consistent
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Set realistic duration times
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Consider your local market pricing
+                        </li>
+                        <li class="mb-0">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Update prices regularly based on demand
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+
+    // Auto-format price input
+    const priceInput = document.getElementById('{{ form.price.id_for_label }}');
+    if (priceInput) {
+        priceInput.addEventListener('blur', function() {
+            let value = parseFloat(this.value);
+            if (!isNaN(value)) {
+                this.value = value.toFixed(2);
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.form-apple {
+    width: 100%;
+    padding: 0.75rem 1rem;
+}
+</style>
+{% endblock %}

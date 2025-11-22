@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book with {{ barber.username }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Book Appointment with {{ barber.username }}</h2>
+                    </div>
+                    <div class="card-body">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <form method="post" id="bookingForm">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label for="id_name" class="form-label">Your Name</label>
+                                {{ form.name }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_phone" class="form-label">Phone Number</label>
+                                {{ form.phone }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_service" class="form-label">Service</label>
+                                {{ form.service }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_appointment_date" class="form-label">Date</label>
+                                {{ form.appointment_date }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_appointment_time" class="form-label">Time</label>
+                                <select name="appointment_time" class="form-control" id="id_appointment_time" required>
+                                    <option value="">Select a time</option>
+                                    {% for slot in available_slots %}
+                                    <option value="{{ slot }}">{{ slot }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Book Appointment</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('id_appointment_date');
+            const serviceSelect = document.getElementById('id_service');
+            const timeSelect = document.getElementById('id_appointment_time');
+            const barberUsername = "{{ barber.username }}"; // Pass the barber's username from Django template context
+
+            // Function to fetch available slots via AJAX
+            function fetchAvailableSlots(date, serviceId) {
+                if (!date || !serviceId) {
+                    // If date or service isn't selected, clear the time options
+                    timeSelect.innerHTML = '<option value="">Select a time</option>';
+                    return;
+                }
+
+                // Show a loading indicator (optional)
+                timeSelect.innerHTML = '<option value="">Loading...</option>';
+                timeSelect.disabled = true; // Disable while loading
+
+                // Construct the AJAX request URL
+                // We'll create a specific URL pattern for fetching slots via AJAX
+                const url = `/book/${barberUsername}/get_slots/?date=${encodeURIComponent(date)}&service=${encodeURIComponent(serviceId)}`;
+
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json(); // Expecting JSON response
+                    })
+                    .then(data => {
+                        // Clear the time slot dropdown
+                        timeSelect.innerHTML = '';
+
+                        if (data && data.available_slots && data.available_slots.length > 0) {
+                            // Populate the dropdown with available slots
+                            data.available_slots.forEach(function(slot) {
+                                const option = document.createElement('option');
+                                option.value = slot;
+                                option.textContent = slot;
+                                timeSelect.appendChild(option);
+                            });
+                        } else {
+                            // If no slots are available
+                            timeSelect.innerHTML = '<option value="">No slots available</option>';
+                        }
+                        timeSelect.disabled = false; // Re-enable after loading
+                    })
+                    .catch(error => {
+                        console.error('Error fetching time slots:', error);
+                        // Handle error, maybe show a message to the user
+                        timeSelect.innerHTML = '<option value="">Error loading slots</option>';
+                        timeSelect.disabled = false;
+                    });
+            }
+
+            // Attach event listeners to date and service fields
+            dateInput.addEventListener('change', function() {
+                const selectedDate = this.value;
+                const selectedServiceId = serviceSelect.value;
+                fetchAvailableSlots(selectedDate, selectedServiceId);
+            });
+
+            serviceSelect.addEventListener('change', function() {
+                const selectedDate = dateInput.value;
+                const selectedServiceId = this.value;
+                fetchAvailableSlots(selectedDate, selectedServiceId);
+            });
+
+            // Optional: Load slots if date and service are pre-filled (e.g., from URL params on initial load)
+            if (dateInput.value && serviceSelect.value) {
+                 fetchAvailableSlots(dateInput.value, serviceSelect.value);
+            }
+        });
+    </script>
+</body>
+</html>
+
+</body>
+</html>

@@ -1,0 +1,307 @@
+{% extends 'barber/base.html' %}
+
+{% block title %}Queue Management - BarberFlow{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+<div class="row mb-5 fade-in-up">
+    <div class="col-12">
+        <div class="card-apple p-5 text-center">
+            <div class="row align-items-center px-5">  <!-- Increased to px-5 -->
+                <div class="col-lg-8 text-lg-start ps-lg-5">  <!-- Increased to ps-lg-5 -->
+                    <h1 class="display-4 fw-bold mb-4">Queue Management</h1>  <!-- Increased to display-4 -->
+                    <p class="lead text-muted mb-5">Streamlined client flow with Apple-inspired design</p>
+                    
+                    <div class="d-flex gap-4 flex-wrap">  <!-- Increased gap to 4 -->
+                        <a href="{% url 'client_create' %}" class="btn btn-apple-primary px-5 py-3">  <!-- Increased to px-5 -->
+                            <i class="bi bi-person-plus me-3"></i>New Client  <!-- Increased icon spacing -->
+                        </a>
+                        <a href="{% url 'select_existing_client' %}" class="btn btn-apple-success px-5 py-3">
+                            <i class="bi bi-person-check me-3"></i>Existing Client
+                        </a>
+                        <a href="{% url 'dashboard' %}" class="btn btn-apple px-5 py-3">
+                            <i class="bi bi-graph-up me-3"></i>Analytics
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center mt-4 mt-lg-0 pe-lg-5">  <!-- Increased to pe-lg-5 -->
+                    <div class="card-apple p-5 d-inline-block">  <!-- Increased to p-5 -->
+                        <i class="bi bi-scissors display-3 text-primary"></i>  <!-- Increased to display-3 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Currently Serving Section -->
+    {% if active_booking %}
+    <div class="row mb-4 fade-in-up">
+        <div class="col-12">
+            <div class="card-apple p-4 border-primary" style="border-left: 4px solid var(--accent-blue) !important;">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-4" 
+                                 style="width: 60px; height: 60px; background: var(--accent-blue) !important;">
+                                <i class="bi bi-scissors text-white fs-4"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-2">{{ active_booking.get_client_name }}</h3>
+                                <div class="d-flex flex-wrap gap-3 text-muted">
+                                    <span><i class="bi bi-clock me-1"></i>{{ active_booking.service.duration_minutes }}min</span>
+                                    <span><i class="bi bi-currency-dollar me-1"></i>R{{ active_booking.service.price }}</span>
+                                    <span><i class="bi bi-scissors me-1"></i>{{ active_booking.service.name }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <div class="card-apple p-3" id="timer">
+                            <!-- Timer will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <a href="{% url 'booking_complete' active_booking.pk %}" 
+                           class="btn btn-apple-success btn-lg">
+                            <i class="bi bi-check-circle me-1"></i>Complete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Content Grid -->
+    <div class="row">
+        <!-- Queue Section -->
+        <div class="col-lg-8 mb-4">
+            <div class="card-apple h-100">
+                <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-between align-items-center py-4">
+                    <h4 class="mb-0 fw-semibold">
+                        <i class="bi bi-list-ol me-2"></i>Waiting Queue
+                    </h4>
+                    <span class="badge-apple text-primary">{{ queue.count }} clients</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if queue %}
+                    <div class="list-group list-group-flush">
+                        {% for booking in queue %}
+                        <div class="list-group-item border-0 py-3 {% if forloop.first and not active_booking %}bg-light{% endif %}" 
+                             style="border-left: 4px solid {% if forloop.first and not active_booking %}var(--accent-green){% else %}var(--accent-blue){% endif %} !important;">
+                            <div class="row align-items-center">
+                                <div class="col-md-1 text-center">
+                                    <span class="badge {% if forloop.first and not active_booking %}bg-success{% else %}badge-apple text-primary{% endif %} fs-6">
+                                        {{ forloop.counter }}
+                                    </span>
+                                </div>
+                                <div class="col-md-5">
+                                    <h6 class="mb-1 fw-semibold">{{ booking.get_client_name }}</h6>
+                                    <small class="text-muted">
+                                        {% if booking.client %}
+                                            {{ booking.client.phone }}
+                                        {% else %}
+                                            {{ booking.client_phone }}
+                                        {% endif %}
+                                        • Added: {{ booking.added_to_queue_at|date:"H:i" }}
+                                    </small>
+                                </div>
+                                <div class="col-md-3">
+                                    {% if not booking.is_walkin %}
+                                    <span class="badge-apple text-info">Appointment</span>
+                                    {% else %}
+                                    <span class="badge-apple text-muted">Walk-in</span>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    {% if forloop.first and not active_booking %}
+                                    <a href="{% url 'start_service_from_queue' booking.pk %}" 
+                                       class="btn btn-apple-success btn-sm me-2">
+                                        <i class="bi bi-play-circle me-1"></i>Start
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'remove_from_queue' booking.pk %}" 
+                                       class="btn btn-apple btn-sm"
+                                       onclick="return confirm('Remove {{ booking.get_client_name }} from queue?')">
+                                        <i class="bi bi-x"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-people display-1 text-muted mb-3"></i>
+                        <h4 class="text-muted mb-2">Queue is Empty</h4>
+                        <p class="text-muted mb-4">Add clients to start building your queue</p>
+                        <div class="d-flex justify-content-center gap-2 flex-wrap">
+                            <a href="{% url 'client_create' %}" class="btn btn-apple-primary">
+                                <i class="bi bi-person-plus me-1"></i>New Client
+                            </a>
+                            <a href="{% url 'select_existing_client' %}" class="btn btn-apple-success">
+                                <i class="bi bi-person-check me-1"></i>Existing Client
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Section -->
+<div class="col-lg-4">
+    <!-- Quick Stats -->
+    <div class="card-apple mb-4">
+        <div class="card-header bg-transparent border-bottom-0 py-4 px-5">  <!-- Increased to px-5 -->
+            <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-graph-up me-3"></i>Today's Overview
+            </h5>
+        </div>
+        <div class="card-body p-5">  <!-- Increased to p-5 -->
+            <div class="row text-center g-4">  <!-- Increased gap to g-4 -->
+                <div class="col-6">
+                    <div class="card-apple p-4 m-2">  <!-- Increased padding to p-4 -->
+                        <div class="h3 text-primary mb-1">{{ queue.count }}</div>  <!-- Increased to h3 -->
+                        <div class="text-muted small">In Queue</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card-apple p-4 m-2">
+                        <div class="h3 text-success mb-1">{% if active_booking %}1{% else %}0{% endif %}</div>
+                        <div class="text-muted small">Active</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card-apple p-4 m-2">
+                        <div class="h3 text-info mb-1">{{ services_count|default:"0" }}</div>
+                        <div class="text-muted small">Services</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card-apple p-4 m-2">
+                        <div class="h3 text-warning mb-1">{{ clients_count|default:"0" }}</div>
+                        <div class="text-muted small">Clients</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            <!-- Quick Actions -->
+<div class="card-apple">
+    <div class="card-header bg-transparent border-bottom-0 py-4 px-5">  <!-- Increased to px-5 -->
+        <h5 class="mb-0 fw-semibold">
+            <i class="bi bi-lightning me-3"></i>Quick Actions
+        </h5>
+    </div>
+    <div class="card-body p-5">  <!-- Increased to p-5 -->
+        <div class="d-grid gap-4">  <!-- Increased to gap-4 -->
+            <a href="{% url 'income_create' %}" class="btn btn-apple text-start py-4 px-5">  <!-- Increased padding -->
+                <i class="bi bi-plus-circle me-3"></i>Record Income
+            </a>
+            <a href="{% url 'booking_create' %}" class="btn btn-apple text-start py-4 px-5">
+                <i class="bi bi-calendar-plus me-3"></i>Add Booking
+            </a>
+            <a href="{% url 'services_list' %}" class="btn btn-apple text-start py-4 px-5">
+                <i class="bi bi-list-ul me-3"></i>Manage Services
+            </a>
+            <a href="{% url 'settings' %}" class="btn btn-apple text-start py-4 px-5">
+                <i class="bi bi-gear me-3"></i>Settings
+            </a>
+        </div>
+    </div>
+</div>
+
+           <!-- Status Indicators -->
+<div class="card-apple mt-4">
+    <div class="card-body text-center p-4">
+        <div class="d-flex justify-content-around py-4">  <!-- Increased to py-4 -->
+            <div class="text-center">
+                <div class="rounded-circle bg-primary mx-auto mb-2" style="width: 14px; height: 14px;"></div>  <!-- Slightly larger dots -->
+                <small class="text-muted">Queue</small>
+            </div>
+            <div class="text-center">
+                <div class="rounded-circle bg-success mx-auto mb-2" style="width: 14px; height: 14px;"></div>
+                <small class="text-muted">Active</small>
+            </div>
+            <div class="text-center">
+                <div class="rounded-circle bg-info mx-auto mb-2" style="width: 14px; height: 14px;"></div>
+                <small class="text-muted">Completed</small>
+            </div>
+        </div>
+        <small class="text-muted">BarberFlow v1.0</small>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if active_booking %}
+<script>
+let startTime = new Date("{{ active_booking.timer_started_at|date:'c' }}");
+let duration = {{ active_booking.service.duration_minutes }} * 60 * 1000;
+
+function updateTimer() {
+    let now = new Date();
+    let elapsed = now - startTime;
+    let remaining = duration - elapsed;
+    
+    let timerElement = document.getElementById('timer');
+    
+    if (remaining <= 0) {
+        timerElement.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-alarm me-1"></i>TIME UP</span>';
+        timerElement.classList.add('p--3');
+        return;
+    }
+    
+    let minutes = Math.floor(remaining / 60000);
+    let seconds = Math.floor((remaining % 60000) / 1000);
+    
+    let timeString = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+    
+    // Add warning class if less than 5 minutes remaining
+    if (minutes < 5) {
+        timerElement.classList.add('text-warning');
+    }
+    
+    timerElement.innerHTML = '<span class="fw-bold">' + timeString + '</span><br><small class="text-muted">remaining</small>';
+}
+
+// Update timer immediately and then every second
+updateTimer();
+setInterval(updateTimer, 1000);
+</script>
+{% endif %}
+
+<style>
+/* Additional Apple-style refinements */
+.card-header {
+    padding: 1.5rem 1.5rem 0.5rem;
+}
+
+.list-group-item {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent !important;
+}
+
+.list-group-item:hover {
+    background-color: rgba(0, 113, 227, 0.03) !important;
+}
+
+#timer {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 1.1rem;
+}
+
+/* Status indicators animation */
+.rounded-circle {
+    transition: transform 0.3s ease;
+}
+
+.rounded-circle:hover {
+    transform: scale(1.2);
+}
+</style>
+{% endblock %}

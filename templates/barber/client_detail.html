@@ -1,0 +1,199 @@
+{% extends 'barber/base.html' %}
+
+{% block title %}{{ client.name }} {{ client.surname }} - BarberFlow{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header Section -->
+    <div class="row mb-4 fade-in-up">
+        <div class="col-12">
+            <div class="card-apple p-4">
+                <div class="row align-items-center px-3">  <!-- Added px-3 -->
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-4" 
+                                 style="width: 80px; height: 80px; background: var(--accent-blue) !important;">
+                                <i class="bi bi-person text-white fs-3"></i>
+                            </div>
+                            <div>
+                                <h1 class="display-6 fw-bold mb-1">{{ client.name }} {{ client.surname }}</h1>
+                                <p class="text-muted mb-0">
+                                    {{ client.phone }} • 
+                                    {{ client.get_age_group_display }} • 
+                                    {{ client.get_gender_display }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="btn-group">
+                            <a href="{% url 'clients_list' %}" class="btn btn-apple">
+                                <i class="bi bi-arrow-left me-2"></i>Back
+                            </a>
+                            <a href="{% url 'client_delete' client.pk %}" 
+                               class="btn btn-apple-danger"
+                               onclick="return confirm('Delete {{ client.name }} {{ client.surname }}?')">
+                                <i class="bi bi-trash me-2"></i>Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Client Statistics -->
+        <div class="col-md-4 mb-4">
+            <div class="card-apple text-center p-4 h-100">
+                <div class="h2 text-primary mb-2">{{ bookings|length }}</div>
+                <div class="text-muted">Total Visits</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card-apple text-center p-4 h-100">
+                <div class="h2 text-success mb-2">{{ income_records|length }}</div>
+                <div class="text-muted">Completed Services</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card-apple text-center p-4 h-100">
+                <div class="h2 text-info mb-2">R{{ total_spent|default:"0" }}</div>
+                <div class="text-muted">Total Spent</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Booking History -->
+        <div class="col-lg-6 mb-4">
+            <div class="card-apple h-100">
+                <div class="card-header bg-transparent border-bottom-0 py-4 px-4">  <!-- Added px-4 -->
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="bi bi-calendar-check me-3"></i>Booking History  <!-- Increased icon spacing -->
+                    </h5>
+                </div>
+                <div class="card-body px-4 pb-4">  <!-- Added px-4 pb-4 -->
+                    {% if bookings %}
+                    <div class="list-group list-group-flush">
+                        {% for booking in bookings|slice:":5" %}
+                        <div class="list-group-item border-0 py-3 px-0">  <!-- Added px-0 -->
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="fw-semibold mb-1">{{ booking.service.name }}</h6>
+                                    <small class="text-muted">
+                                        {{ booking.appointment_date|date:"M j, Y" }} at {{ booking.appointment_time|time:"H:i" }}
+                                    </small>
+                                </div>
+                                <span class="badge px-3 py-2 rounded-pill  <!-- Standard Bootstrap badge -->
+                                    {% if booking.status == 'completed' %}bg-success
+                                    {% elif booking.status == 'in_progress' %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </div>
+                            <div class="text-muted small">
+                                Duration: {{ booking.service.duration_minutes }}min • 
+                                R{{ booking.service.price }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 px-4">  <!-- Added px-4 -->
+                        <i class="bi bi-calendar-x display-6 text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No booking history</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="col-lg-6 mb-4">
+            <div class="card-apple h-100">
+                <div class="card-header bg-transparent border-bottom-0 py-4 px-4">  <!-- Added px-4 -->
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="bi bi-cash-coin me-3"></i>Payment History  <!-- Increased icon spacing -->
+                    </h5>
+                </div>
+                <div class="card-body px-4 pb-4">  <!-- Added px-4 pb-4 -->
+                    {% if income_records %}
+                    <div class="list-group list-group-flush">
+                        {% for income in income_records|slice:":5" %}
+                        <div class="list-group-item border-0 py-3 px-0">  <!-- Added px-0 -->
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="fw-semibold mb-1">{{ income.service.name }}</h6>
+                                    <small class="text-muted">
+                                        {{ income.date|date:"M j, Y" }}
+                                    </small>
+                                </div>
+                                <div class="text-success fw-semibold">R{{ income.amount }}</div>
+                            </div>
+                            <div class="text-muted small">
+                                <span class="badge px-3 py-2 rounded-pill  <!-- Standard Bootstrap badge -->
+                                    {% if income.payment_method == 'cash' %}bg-success
+                                    {% elif income.payment_method == 'card' %}bg-primary
+                                    {% elif income.payment_method == 'credit' %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ income.get_payment_method_display }}
+                                </span>
+                                {% if income.payment_method == 'credit' %}
+                                • <span class="badge {% if income.credit_paid %}bg-success{% else %}bg-warning{% endif %} px-2 py-1">
+                                    {% if income.credit_paid %}Paid{% else %}Pending{% endif %}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 px-4">  <!-- Added px-4 -->
+                        <i class="bi bi-receipt display-6 text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No payment history</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Preferences -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card-apple">
+                <div class="card-header bg-transparent border-bottom-0 py-4 px-4">  <!-- Added px-4 -->
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="bi bi-heart me-3"></i>Service Preferences  <!-- Increased icon spacing -->
+                    </h5>
+                </div>
+                <div class="card-body p-4">  <!-- Added p-4 -->
+                    {% if preferred_services %}
+                    <div class="row g-3">  <!-- Added g-3 for gap -->
+                        {% for service in preferred_services %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card-apple p-3 m-2">  <!-- Added m-2 for margin -->
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-scissors text-primary me-3"></i>
+                                    <div>
+                                        <h6 class="fw-semibold mb-1">{{ service.name }}</h6>
+                                        <small class="text-muted">{{ service.count }} times</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 px-4">  <!-- Added px-4 -->
+                        <i class="bi bi-info-circle display-6 text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No service preferences recorded yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

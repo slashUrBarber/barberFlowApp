@@ -1,0 +1,476 @@
+<!-- templates/barber/dashboard.html -->
+{% extends 'barber/base.html' %}
+
+{% block title %}Dashboard - BarberFlow{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header Section -->
+    <div class="row mb-5 fade-in-up">
+        <div class="col-12">
+            <div class="card-apple p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="display-6 fw-bold mb-2">Dashboard</h1>
+                        <p class="text-muted mb-0">Your barber shop performance at a glance</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="card-apple d-inline-block px-3 py-2">
+                            <small class="text-muted">Today: {{ today|date:"M j, Y" }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Month Selection Form -->
+    <div class="row mb-4 fade-in-up" style="animation-delay: 0.05s;">
+        <div class="col-12">
+            <div class="card-apple p-4">
+                <form method="get" class="row g-3 align-items-center">
+                    <div class="col-md-4">
+                        <label for="month" class="form-label fw-semibold">Select Month:</label>
+                        <input type="month" id="month" name="month" class="form-apple w-100" value="{{ selected_month_str }}">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-apple-primary w-100">View Month</button>
+                    </div>
+                    {% if selected_month_str %}
+                    <div class="col-md-2 d-flex align-items-end">
+                        <a href="{% url 'dashboard' %}" class="btn btn-apple w-100">Clear Selection</a>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Income Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3 fade-in-up" style="animation-delay: 0.1s;">
+            <div class="card-apple text-center h-100">
+                <div class="card-body p-4">
+                    <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width: 60px; height: 60px; background: var(--accent-blue) !important;">
+                        <i class="bi bi-currency-dollar text-white fs-4"></i>
+                    </div>
+                    <h3 class="text-primary mb-2">
+                        {% if selected_month_str %}
+                            R{{ selected_month_income|default:0 }}
+                        {% else %}
+                            R{{ daily_income }}
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">
+                        {% if selected_month_str %}
+                            Income for {{ selected_month_str|slice:":4" }}-{{ selected_month_str|slice:"5:" }}
+                        {% else %}
+                            Today's Income
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3 fade-in-up" style="animation-delay: 0.2s;">
+            <div class="card-apple text-center h-100">
+                <div class="card-body p-4">
+                    <div class="rounded-circle bg-success d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width: 60px; height: 60px; background: var(--accent-green) !important;">
+                        <i class="bi bi-graph-up text-white fs-4"></i>
+                    </div>
+                    <h3 class="text-success mb-2">
+                        {% if selected_month_str %}
+                            {% for service in selected_month_services %}
+                                {{ service.count }}<br/>
+                            {% empty %}
+                                0
+                            {% endfor %}
+                        {% else %}
+                            R{{ weekly_income }}
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">
+                        {% if selected_month_str %}
+                            Services Count
+                        {% else %}
+                            This Week
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3 fade-in-up" style="animation-delay: 0.3s;">
+            <div class="card-apple text-center h-100">
+                <div class="card-body p-4">
+                    <div class="rounded-circle bg-info d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width: 60px; height: 60px; background: var(--accent-blue) !important;">
+                        <i class="bi bi-calendar-month text-white fs-4"></i>
+                    </div>
+                    <h3 class="text-info mb-2">
+                        {% if selected_month_str %}
+                            {{ selected_month_transactions|length }}
+                        {% else %}
+                            R{{ monthly_income }}
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">
+                        {% if selected_month_str %}
+                            Total Transactions
+                        {% else %}
+                            This Month
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card-apple h-100">
+                <div class="card-header bg-transparent border-bottom-0 py-4 text-center">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="bi bi-today me-2"></i>
+                        {% if selected_month_str %}
+                            Services for {{ selected_month_str|slice:":4" }}-{{ selected_month_str|slice:"5:" }}
+                        {% else %}
+                            Today's Services
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if selected_month_str %}
+                        {% if selected_month_services %}
+                        <div class="text-center">
+                            {% for service in selected_month_services %}
+                            <div class="mb-3">
+                                <div class="fw-medium mb-1">{{ service.service__name|default:"General Service" }}</div>
+                                <span class="badge-apple text-primary fs-6">{{ service.count }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-clipboard-x display-6 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No services</p>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        {% if daily_services %}
+                        <div class="text-center">
+                            {% for service in daily_services %}
+                            <div class="mb-3">
+                                <div class="fw-medium mb-1">{{ service.service__name|default:"General Service" }}</div>
+                                <span class="badge-apple text-primary fs-6">{{ service.count }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-clipboard-x display-6 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No services today</p>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card-apple h-100">
+                <div class="card-header bg-transparent border-bottom-0 py-4 text-center">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="bi bi-calendar-week me-2"></i>
+                        {% if selected_month_str %}
+    
+                        {% else %}
+                            This Week
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if not selected_month_str %}
+                        {% if weekly_services %}
+                        <div class="text-center">
+                            {% for service in weekly_services %}
+                            <div class="mb-3">
+                                <div class="fw-medium mb-1">{{ service.service__name|default:"General Service" }}</div>
+                                <span class="badge-apple text-primary fs-6">{{ service.count }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-clipboard-x display-6 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No services this week</p>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-calendar-week display-6 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">Week view for selected month not implemented</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card-apple h-100">
+                <div class="card-header bg-transparent border-bottom-0 py-4 text-center">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="bi bi-calendar-month me-2"></i>
+                        {% if selected_month_str %}
+                            
+                        {% else %}
+                            This Month
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if not selected_month_str %}
+                        {% if monthly_services %}
+                        <div class="text-center">
+                            {% for service in monthly_services %}
+                            <div class="mb-3">
+                                <div class="fw-medium mb-1">{{ service.service__name|default:"General Service" }}</div>
+                                <span class="badge-apple text-primary fs-6">{{ service.count }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-clipboard-x display-6 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No services this month</p>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-calendar-month display-6 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">Month view for selected month not implemented</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions Table for Selected Month -->
+    {% if selected_month_str %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card-apple">
+                <div class="card-header bg-transparent border-bottom-0 py-4 px-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold">
+                            <i class="bi bi-clock-history me-3"></i>Transactions for {{ selected_month_str|slice:":4" }}-{{ selected_month_str|slice:"5:" }}
+                        </h5>
+                        <span class="badge bg-primary text-white px-3 py-2 rounded-pill">{{ selected_month_transactions|length }} transactions</span>
+                    </div>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    {% if selected_month_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="px-3 py-3">Date</th>
+                                    <th class="px-3 py-3">Time</th>
+                                    <th class="px-3 py-3">Client</th>
+                                    <th class="px-3 py-3">Service</th>
+                                    <th class="px-3 py-3">Amount</th>
+                                    <th class="px-3 py-3">Payment</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for income in selected_month_transactions %}
+                                <tr>
+                                    <td class="text-muted px-3 py-3">
+                                        <i class="bi bi-calendar me-2"></i>
+                                        {{ income.date }}
+                                    </td>
+                                    <td class="text-muted px-3 py-3">
+                                        <i class="bi bi-clock me-2"></i>
+                                        {{ income.created_at|date:"H:i" }}
+                                    </td>
+                                    <td class="fw-medium px-3 py-3">
+                                        {% if income.client %}
+                                            {{ income.client.name }} {{ income.client.surname }}
+                                        {% else %}
+                                            {{ income.client_name }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-3 py-3">{{ income.service.name }}</td>
+                                    <td class="fw-semibold text-success px-3 py-3">R{{ income.amount }}</td>
+                                    <td class="px-3 py-3">
+                                        <span class="badge px-3 py-2 rounded-pill
+                                            {% if income.payment_method == 'cash' %}bg-success
+                                            {% elif income.payment_method == 'card' %}bg-primary
+                                            {% elif income.payment_method == 'credit' %}bg-warning
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ income.get_payment_method_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-receipt display-1 text-muted mb-3"></i>
+                        <h5 class="text-muted mb-2">No transactions found</h5>
+                        <p class="text-muted">No transactions recorded for {{ selected_month_str|slice:":4" }}-{{ selected_month_str|slice:"5:" }}.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Transactions - FIXED WIDTH (only shows if no specific month is selected) -->
+    {% if not selected_month_str %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card-apple">
+                <div class="card-header bg-transparent border-bottom-0 py-4 px-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold">
+                            <i class="bi bi-clock-history me-3"></i>Today's Completed Services
+                        </h5>
+                        <span class="badge bg-primary text-white px-3 py-2 rounded-pill">{{ today_completed|length }} transactions</span>
+                    </div>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    {% if today_completed %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="px-3 py-3">Time</th>
+                                    <th class="px-3 py-3">Client</th>
+                                    <th class="px-3 py-3">Service</th>
+                                    <th class="px-3 py-3">Amount</th>
+                                    <th class="px-3 py-3">Payment</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for income in today_completed %}
+                                <tr>
+                                    <td class="text-muted px-3 py-3">
+                                        <i class="bi bi-clock me-2"></i>
+                                        {{ income.created_at|date:"H:i" }}
+                                    </td>
+                                    <td class="fw-medium px-3 py-3">
+                                        {% if income.client %}
+                                            {{ income.client.name }} {{ income.client.surname }}
+                                        {% else %}
+                                            {{ income.client_name }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-3 py-3">{{ income.service.name }}</td>
+                                    <td class="fw-semibold text-success px-3 py-3">R{{ income.amount }}</td>
+                                    <td class="px-3 py-3">
+                                        <span class="badge px-3 py-2 rounded-pill
+                                            {% if income.payment_method == 'cash' %}bg-success
+                                            {% elif income.payment_method == 'card' %}bg-primary
+                                            {% elif income.payment_method == 'credit' %}bg-warning
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ income.get_payment_method_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-receipt display-1 text-muted mb-3"></i>
+                        <h5 class="text-muted mb-2">No services completed today</h5>
+                        <p class="text-muted">Completed services will appear here</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card-apple">
+                <div class="card-header bg-transparent border-bottom-0 py-4 px-4">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="bi bi-lightning me-3"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body p-3">
+                    <div class="row g-3">
+                        <div class="col-md-3 col-6">
+                            <a href="{% url 'home' %}" class="card-apple text-decoration-none h-100">
+                                <div class="card-body text-center p-4 m-2">
+                                    <i class="bi bi-people-fill display-6 text-primary mb-3"></i>
+                                    <h6 class="fw-semibold mb-0">Manage Queue</h6>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a href="{% url 'income_create' %}" class="card-apple text-decoration-none h-100">
+                                <div class="card-body text-center p-4 m-2">
+                                    <i class="bi bi-plus-circle display-6 text-success mb-3"></i>
+                                    <h6 class="fw-semibold mb-0">Record Income</h6>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a href="{% url 'booking_create' %}" class="card-apple text-decoration-none h-100">
+                                <div class="card-body text-center p-4 m-2">
+                                    <i class="bi bi-calendar-plus display-6 text-info mb-3"></i>
+                                    <h6 class="fw-semibold mb-0">Add Booking</h6>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a href="{% url 'client_create' %}" class="card-apple text-decoration-none h-100">
+                                <div class="card-body text-center p-4 m-2">
+                                    <i class="bi bi-person-plus display-6 text-warning mb-3"></i>
+                                    <h6 class="fw-semibold mb-0">Add Client</h6>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add some interactive elements
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate numbers counting up
+    const incomeElements = document.querySelectorAll('.text-primary, .text-success, .text-info');
+    incomeElements.forEach(element => {
+        if (element.textContent.includes('R')) {
+            const finalValue = parseFloat(element.textContent.replace('R', ''));
+            let currentValue = 0;
+            const increment = finalValue / 30;
+            const timer = setInterval(() => {
+                currentValue += increment;
+                if (currentValue >= finalValue) {
+                    element.textContent = 'R' + finalValue.toFixed(2);
+                    clearInterval(timer);
+                } else {
+                    element.textContent = 'R' + currentValue.toFixed(2);
+                }
+            }, 50);
+        }
+    });
+});
+</script>
+{% endblock %}

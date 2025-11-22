@@ -1,0 +1,105 @@
+{% extends 'barber/base.html' %}
+
+{% block title %}Services - BarberFlow{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header Section -->
+    <div class="row mb-4 fade-in-up">
+        <div class="col-12">
+            <div class="card-apple p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="display-6 fw-bold mb-2">Services</h1>
+                        <p class="text-muted mb-0">Manage your service offerings and pricing</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{% url 'service_create' %}" class="btn btn-apple-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Add Service
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Grid -->
+    <div class="row">
+        {% for service in services %}
+        <div class="col-md-6 col-lg-4 mb-4 fade-in-up" style="animation-delay: {{ forloop.counter0|add:0.1 }}s;">
+            <div class="card-apple h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-3" 
+                             style="width: 50px; height: 50px; background: var(--accent-blue) !important;">
+                            <i class="bi bi-scissors text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="fw-semibold mb-1">{{ service.name }}</h5>
+                            <div class="text-muted small">
+                                {{ service.duration_minutes }} minutes
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="h4 text-success mb-0">R{{ service.price }}</div>
+                        <div class="text-muted small">
+                            {{ service.bookings.count }} bookings
+                        </div>
+                    </div>
+
+                    <div class="btn-group w-100">
+                        <a href="{% url 'service_edit' service.pk %}" class="btn btn-apple flex-fill">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                        <a href="{% url 'service_delete' service.pk %}" 
+                           class="btn btn-apple-danger flex-fill"
+                           onclick="return confirm('Delete {{ service.name }}?')">
+                            <i class="bi bi-trash me-1"></i>Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card-apple text-center py-5 fade-in-up">
+                <i class="bi bi-clipboard-plus display-1 text-muted mb-3"></i>
+                <h4 class="text-muted mb-2">No services yet</h4>
+                <p class="text-muted mb-4">Add your first service to get started</p>
+                <a href="{% url 'service_create' %}" class="btn btn-apple-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Add First Service
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card-apple text-center p-4">
+                <div class="h2 text-primary mb-2">{{ services|length }}</div>
+                <div class="text-muted">Total Services</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-apple text-center p-4">
+                <div class="h2 text-success mb-2">
+                    {{ total_bookings|default:"0" }}
+                </div>
+                <div class="text-muted">Total Bookings</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-apple text-center p-4">
+                <div class="h2 text-info mb-2">
+                    R{{ total_income|default:"0" }}
+                </div>
+                <div class="text-muted">Total Income</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

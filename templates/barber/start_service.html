@@ -1,0 +1,142 @@
+{% extends 'barber/base.html' %}
+
+{% block title %}Start Service - BarberFlow{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="row mb-4 fade-in-up">
+                <div class="col-12">
+                    <div class="card-apple p-4">
+                        <div class="d-flex align-items-center">
+                            <a href="{% url 'home' %}" class="btn btn-apple me-3">
+                                <i class="bi bi-arrow-left"></i>
+                            </a>
+                            <div>
+                                <h1 class="display-6 fw-bold mb-1">Start Service</h1>
+                                <p class="text-muted mb-0">Select service for {{ booking.get_client_name }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Info -->
+            <div class="card-apple p-4 mb-4 fade-in-up" style="animation-delay: 0.1s;">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-4" 
+                                 style="width: 60px; height: 60px; background: var(--accent-blue) !important;">
+                                <i class="bi bi-person text-white fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="fw-semibold mb-1">{{ booking.get_client_name }}</h4>
+                                <div class="text-muted">
+                                    {% if booking.client %}
+                                        {{ booking.client.phone }} • 
+                                        {{ booking.client.get_age_group_display }} • 
+                                        {{ booking.client.get_gender_display }}
+                                    {% else %}
+                                        {{ booking.client_phone }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        {% if booking.is_walkin %}
+                        <span class="badge-apple text-muted">Walk-in</span>
+                        {% else %}
+                        <span class="badge-apple text-primary">Appointment</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Service Selection -->
+            <div class="card-apple p-4 fade-in-up" style="animation-delay: 0.2s;">
+                <h5 class="fw-semibold mb-4">Select Service</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        {% for service in services %}
+                        <div class="col-md-6 col-lg-4">
+                            <button type="submit" name="service" value="{{ service.pk }}" 
+                                    class="card-apple w-100 border-0 text-decoration-none p-4 text-start h-100">
+                                <div class="d-flex align-items-start mb-3">
+                                    <i class="bi bi-scissors text-primary fs-4 me-3"></i>
+                                    <div>
+                                        <h6 class="fw-semibold mb-1">{{ service.name }}</h6>
+                                        <small class="text-muted">{{ service.duration_minutes }} min</small>
+                                    </div>
+                                </div>
+                                <div class="text-success fw-semibold">R{{ service.price }}</div>
+                            </button>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="text-center py-4">
+                                <i class="bi bi-clipboard-x display-1 text-muted mb-3"></i>
+                                <h5 class="text-muted mb-2">No services available</h5>
+                                <p class="text-muted mb-3">Add services to get started</p>
+                                <a href="{% url 'service_create' %}" class="btn btn-apple-primary">
+                                    <i class="bi bi-plus-circle me-2"></i>Add Service
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </form>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card-apple p-4 mt-4 fade-in-up" style="animation-delay: 0.3s;">
+                <h5 class="fw-semibold mb-3">Quick Actions</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="{% url 'service_create' %}" class="card-apple text-decoration-none h-100">
+                            <div class="card-body text-center p-3">
+                                <i class="bi bi-plus-circle display-6 text-primary mb-2"></i>
+                                <h6 class="fw-semibold mb-1">Add Service</h6>
+                                <small class="text-muted">Create new service</small>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{% url 'services_list' %}" class="card-apple text-decoration-none h-100">
+                            <div class="card-body text-center p-3">
+                                <i class="bi bi-list-ul display-6 text-success mb-2"></i>
+                                <h6 class="fw-semibold mb-1">Manage Services</h6>
+                                <small class="text-muted">View all services</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add hover effects to service cards
+document.addEventListener('DOMContentLoaded', function() {
+    const serviceCards = document.querySelectorAll('.card-apple button');
+    serviceCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-4px)';
+            this.style.borderColor = 'var(--accent-blue)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.borderColor = '';
+        });
+    });
+});
+</script>
+{% endblock %}

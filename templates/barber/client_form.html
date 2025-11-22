@@ -1,0 +1,161 @@
+{% extends 'barber/base.html' %}
+
+{% block title %}{% if client %}Edit Client{% else %}Add Client{% endif %} - BarberFlow{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <!-- Header -->
+            <div class="row mb-4 fade-in-up">
+                <div class="col-12">
+                    <div class="card-apple p-4">
+                        <div class="d-flex align-items-center">
+                            <a href="{% url 'clients_list' %}" class="btn btn-apple me-3">
+                                <i class="bi bi-arrow-left"></i>
+                            </a>
+                            <div>
+                                <h1 class="display-6 fw-bold mb-1">
+                                    {% if client %}Edit Client{% else %}Add Client{% endif %}
+                                </h1>
+                                <p class="text-muted mb-0">
+                                    {% if client %}Update client information{% else %}Create a new client profile{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Form -->
+            <div class="card-apple p-4 fade-in-up" style="animation-delay: 0.1s;">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row g-4">
+                        <!-- Personal Information -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">First Name</label>
+                            {{ form.name }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Last Name</label>
+                            {{ form.surname }}
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Phone Number</label>
+                            {{ form.phone }}
+                            <div class="form-text mt-2">Required for SMS notifications</div>  <!-- Added mt-2 -->
+                        </div>
+
+                        <!-- Demographics -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Age Group</label>
+                            {{ form.age_group }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Gender</label>
+                            {{ form.gender }}
+                        </div>
+
+                        <!-- Quick Add to Queue (for new clients) -->
+                        {% if not client and quick_start %}
+                        <div class="col-12 pt-2">  <!-- Added pt-2 -->
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="add_to_queue" id="add_to_queue" checked>
+                                <label class="form-check-label fw-medium" for="add_to_queue">
+                                    Add to queue after creating
+                                </label>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Form Actions -->
+                        <div class="col-12">
+                            <div class="d-flex gap-3 pt-4">  <!-- Increased to pt-4 -->
+                                <button type="submit" class="btn btn-apple-primary px-4 py-3">  <!-- Added px-4 py-3 -->
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    {% if client %}Update Client{% else %}Create Client{% endif %}
+                                </button>
+                                <a href="{% url 'clients_list' %}" class="btn btn-apple px-4 py-3">  <!-- Added px-4 py-3 -->
+                                    <i class="bi bi-x-circle me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Client Benefits -->
+            <div class="card-apple p-4 mt-4 fade-in-up" style="animation-delay: 0.2s;">
+                <h5 class="fw-semibold mb-4">  <!-- Increased to mb-4 -->
+                    <i class="bi bi-star me-3"></i>Client Benefits  <!-- Increased icon spacing -->
+                </h5>
+                <div class="text-muted">
+                    <ul class="list-unstyled">
+                        <li class="mb-3">  <!-- Increased to mb-3 -->
+                            <i class="bi bi-check-circle text-success me-3"></i>  <!-- Increased icon spacing -->
+                            Personalized service history tracking
+                        </li>
+                        <li class="mb-3">
+                            <i class="bi bi-check-circle text-success me-3"></i>
+                            Automatic appointment reminders
+                        </li>
+                        <li class="mb-3">
+                            <i class="bi bi-check-circle text-success me-3"></i>
+                            Preference and style memory
+                        </li>
+                        <li class="mb-0">
+                            <i class="bi bi-check-circle text-success me-3"></i>
+                            Faster check-in process
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+
+    // Phone number formatting
+    const phoneInput = document.getElementById('{{ form.phone.id_for_label }}');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9+]/g, '');
+        });
+    }
+});
+</script>
+
+<style>
+/* Ensure form inputs have proper spacing */
+.form-apple {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin-top: 0.25rem;  /* Added margin top for labels */
+}
+
+.form-label {
+    margin-bottom: 0.5rem;  /* Ensure consistent label spacing */
+}
+</style>
+{% endblock %}
