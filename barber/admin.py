@@ -43,14 +43,17 @@ class RegistrationRequestAdmin(admin.ModelAdmin):
 
     def approve_selected_requests(self, request, queryset):
         """Custom admin action to approve selected requests."""
-        for reg_request in queryset.filter(approved=False): # Only approve if not already approved
+        for reg_request in queryset.filter(approved=False):
             # Create the actual Barber user
             user = Barber.objects.create_user(
                 username=reg_request.username,
                 email=reg_request.email,
                 phone=reg_request.phone,
-                password=reg_request.password # Django's create_user handles the hashing
             )
+            # Set the password directly (it's already hashed)
+            user.password = reg_request.password
+            user.save()
+            
             # Create default services
             Service.objects.create(barber=user, name='Haircut', duration_minutes=40, price=100)
             Service.objects.create(barber=user, name='Beard Trim', duration_minutes=15, price=50)
